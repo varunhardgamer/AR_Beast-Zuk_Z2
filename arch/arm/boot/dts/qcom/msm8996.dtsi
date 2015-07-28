@@ -2829,7 +2829,7 @@
 		qcom,boot-frequency-mitigate;
 		qcom,hotplug-mitigation-enable;
 	};
-
+#ifndef CONFIG_SIMPLE_THERMAL
 	qcom,msm-thermal {
 		compatible = "qcom,msm-thermal";
 		reg = <0x70000 0x1000>;
@@ -2875,6 +2875,7 @@
 			qcom,freq-req;
 		};
 	};
+#endif
 
 	qcom,bcl {
 		compatible = "qcom,bcl";
