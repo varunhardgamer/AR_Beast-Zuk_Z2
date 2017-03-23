@@ -2279,9 +2279,6 @@ free_urb:
 unbind:
 	if (info->unbind)
 		info->unbind (dev, udev);
-<<<<<<< HEAD
-free_netdevice:
-=======
 out1:
 	/* subdrivers must undo all they did in bind() if they
 	 * fail it, but we may fail later and a deferred kevent
@@ -2290,7 +2287,6 @@ out1:
 	 */
 	cancel_work_sync(&dev->kevent);
 	del_timer_sync(&dev->delay);
->>>>>>> c6364806b3aa... usbnet: cleanup after bind() in probe()
 	free_netdev(net);
 exit:
 	return status;
