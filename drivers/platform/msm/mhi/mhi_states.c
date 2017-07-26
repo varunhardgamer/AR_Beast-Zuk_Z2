@@ -59,6 +59,7 @@ static inline void mhi_set_m_state(struct mhi_device_ctxt *mhi_dev_ctxt,
 	mhi_reg_read(mhi_dev_ctxt->mmio_info.mmio_addr, MHICTRL);
 }
 
+
 static void conditional_chan_db_write(
 				struct mhi_device_ctxt *mhi_dev_ctxt, u32 chan)
 {

@@ -9713,8 +9713,8 @@ eHalStatus sme_SetMaxTxPowerPerBand(eCsrBand band, v_S7_t dB)
     msg.type = WDA_SET_MAX_TX_POWER_PER_BAND_REQ;
     msg.reserved = 0;
     msg.bodyptr = pMaxTxPowerPerBandParams;
-    MTRACE(vos_trace(VOS_MODULE_ID_SME, TRACE_CODE_SME_TX_WDA_MSG, NO_SESSION,
-                                                          msg.type));
+	MTRACE(vos_trace(VOS_MODULE_ID_SME,
+			TRACE_CODE_SME_TX_WDA_MSG, NO_SESSION, msg.type=0));
     if (VOS_STATUS_SUCCESS != vos_mq_post_message(VOS_MODULE_ID_WDA, &msg))
     {
         VOS_TRACE(VOS_MODULE_ID_SME, VOS_TRACE_LEVEL_ERROR,

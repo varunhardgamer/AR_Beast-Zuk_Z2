@@ -333,11 +333,13 @@ int mhi_open_channel(struct mhi_client_handle *client_handle)
 }
 EXPORT_SYMBOL(mhi_open_channel);
 
+
 int mhi_register_channel(struct mhi_client_handle **client_handle,
 		enum MHI_CLIENT_CHANNEL chan, s32 device_index,
 		struct mhi_client_info_t *client_info, void *user_data)
 {
-	struct mhi_device_ctxt *mhi_dev_ctxt = NULL;
+	struct mhi_device_ctxt *mhi_dev_ctxt = NULL, *itr;
+
 
 	if (!VALID_CHAN_NR(chan))
 		return -EINVAL;
