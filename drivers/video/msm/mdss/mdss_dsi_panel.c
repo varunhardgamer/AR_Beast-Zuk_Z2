@@ -1075,10 +1075,6 @@ static int mdss_dsi_panel_on(struct mdss_panel_data *pdata)
 //#endif
 	if (pinfo->compression_mode == COMPRESSION_DSC)
 		mdss_dsi_panel_dsc_pps_send(ctrl, pinfo);
-	mdss_dsi_panel_on_hdmi(ctrl, pinfo);
-
-	/* Ensure low persistence mode is set as before */
-	mdss_dsi_panel_apply_display_setting(pdata, pinfo->persist_mode);
 
 	if (pdata->event_handler)
 		pdata->event_handler(pdata, MDSS_EVENT_UPDATE_LIVEDISPLAY,
