@@ -1926,7 +1926,7 @@ static int netlink_dump(struct sock *sk)
 	struct netlink_callback *cb;
 	struct sk_buff *skb = NULL;
 	struct nlmsghdr *nlh;
-	struct module *module;
+	struct module;
 	int err = -ENOBUFS;
 	int alloc_size;
 
