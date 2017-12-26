@@ -117,12 +117,8 @@
 		} \
 	} while (0)
 
+static struct msm_thermal_data msm_thermal_info;
 static struct delayed_work check_temp_work, retry_hotplug_work;
-struct msm_thermal_data msm_thermal_info;
-unsigned int temp_threshold = 60;
-module_param(temp_threshold, int, 0755);
-unsigned int poll_ms = 100;
-module_param(poll_ms, int, 0755);
 static bool core_control_enabled;
 static uint32_t cpus_offlined;
 static cpumask_var_t cpus_previously_online;
@@ -1572,9 +1568,10 @@ static void do_cluster_freq_ctrl(long temp)
 	bool mitigate = false;
 	struct cluster_info *cluster_ptr = NULL;
 
-	if (temp >= temp_threshold)
+	if (temp >= msm_thermal_info.limit_temp_degC)
 		mitigate = true;
-	else if (temp < (temp_threshold - msm_thermal_info.temp_hysteresis_degC))
+	else if (temp < msm_thermal_info.limit_temp_degC -
+		 msm_thermal_info.temp_hysteresis_degC)
 		mitigate = false;
 	else
 		return;
@@ -3355,14 +3352,15 @@ static void do_freq_control(long temp)
 	if (!freq_table_get)
 		return;
 
-	if (temp >= temp_threshold) {
+	if (temp >= msm_thermal_info.limit_temp_degC) {
 		if (limit_idx == limit_idx_low)
 			return;
 
 		limit_idx -= msm_thermal_info.bootup_freq_step;
 		if (limit_idx < limit_idx_low)
 			limit_idx = limit_idx_low;
-	} else if (temp < (temp_threshold - msm_thermal_info.temp_hysteresis_degC)) {
+	} else if (temp < msm_thermal_info.limit_temp_degC -
+		 msm_thermal_info.temp_hysteresis_degC) {
 		if (limit_idx == limit_idx_high)
 			return;
 
@@ -3398,9 +3396,6 @@ static void check_temp(struct work_struct *work)
 	long temp = 0;
 	int ret = 0;
 
-	if (!msm_thermal_probed)
-		return;
-
 	do_therm_reset();
 
 	ret = therm_get_temp(msm_thermal_info.sensor_id, THERM_TSENS_ID, &temp);
@@ -3429,7 +3424,8 @@ static void check_temp(struct work_struct *work)
 
 reschedule:
 	if (polling_enabled)
-		schedule_delayed_work(&check_temp_work, msecs_to_jiffies(poll_ms));
+		schedule_delayed_work(&check_temp_work,
+				msecs_to_jiffies(msm_thermal_info.poll_ms));
 }
 
 static int __ref msm_thermal_cpu_callback(struct notifier_block *nfb,
@@ -4731,6 +4727,27 @@ static struct kernel_param_ops module_ops = {
 
 module_param_cb(enabled, &module_ops, &enabled, 0644);
 MODULE_PARM_DESC(enabled, "enforce thermal limit on cpu");
+
+/* Poll ms */
+module_param_named(poll_ms, msm_thermal_info.poll_ms, uint, 0664);
+
+/* Temp Threshold */
+module_param_named(temp_threshold, msm_thermal_info.limit_temp_degC,
+			int, 0664);
+module_param_named(core_limit_temp_degC, msm_thermal_info.core_limit_temp_degC,
+		   uint, 0644);
+module_param_named(hotplug_temp_degC, msm_thermal_info.hotplug_temp_degC,
+		   uint, 0644);
+module_param_named(freq_mitig_temp_degc,
+		   msm_thermal_info.freq_mitig_temp_degc, uint, 0644);
+
+/* Control Mask */
+module_param_named(freq_control_mask,
+		   msm_thermal_info.bootup_freq_control_mask, uint, 0644);
+module_param_named(core_control_mask, msm_thermal_info.core_control_mask,
+			uint, 0664);
+module_param_named(freq_mitig_control_mask,
+		   msm_thermal_info.freq_mitig_control_mask, uint, 0644);
 
 static ssize_t show_cc_enabled(struct kobject *kobj,
 		struct kobj_attribute *attr, char *buf)
@@ -7022,6 +7039,16 @@ static int msm_thermal_dev_probe(struct platform_device *pdev)
 
 	key = "qcom,sensor-id";
 	ret = of_property_read_u32(node, key, &data.sensor_id);
+	if (ret)
+		goto fail;
+
+	key = "qcom,poll-ms";
+	ret = of_property_read_u32(node, key, &data.poll_ms);
+	if (ret)
+		goto fail;
+
+	key = "qcom,limit-temp";
+	ret = of_property_read_u32(node, key, &data.limit_temp_degC);
 	if (ret)
 		goto fail;
 
